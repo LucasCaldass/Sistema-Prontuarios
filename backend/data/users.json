@@ -1,0 +1,20 @@
+[
+    {
+        "id": "1",
+        "email": "medico@hospital.com",
+        "password_hash": "$2b$12$ze5SnffqvQ2ZqjXuAHfTDes9cBUNPVRtr8gZiDXZkQYPj4JhryuCi",
+        "role": "medico"
+    },
+    {
+        "id": "2",
+        "email": "farmacia@hospital.com",
+        "password_hash": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36wTf2t28C4J6M7Jz4uO95y",
+        "role": "farmaceutico"
+    },
+    {
+        "id": "3",
+        "email": "teste@email.com",
+        "password_hash": "$2b$12$/9NqsrKNYfpoifPe/5ddn.w/uL2vI.SzPxTmZ3eaAz/W8XUh2kw6e",
+        "role": "medico"
+    }
+]

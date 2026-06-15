@@ -1,0 +1,14 @@
+[
+  {
+    "nome": "João da Silva",
+    "cpf": "12345678900",
+    "data_nascimento": "1990-05-15",
+    "telefone": "82999999999"
+  },
+  {
+    "nome": "Maria Oliveira",
+    "cpf": "09876543211",
+    "data_nascimento": "1985-10-22",
+    "telefone": "82988888888"
+  }
+]

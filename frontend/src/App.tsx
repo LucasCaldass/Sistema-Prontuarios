@@ -240,6 +240,7 @@ function App() {
   const [token, setToken] = useState(() => localStorage.getItem("access_token") ?? "");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const selectedDemoProfile = demoProfiles.find((profile) => profile.email === email.trim().toLowerCase()) ?? null;
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [view, setView] = useState<View>("dashboard");
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -586,6 +587,12 @@ function App() {
       item_posologia: "",
       itens: prescription.itens ?? [],
     });
+  }
+
+  function selectDemoProfile(profile: (typeof demoProfiles)[number]) {
+    setEmail(profile.email);
+    setSenha("");
+    setError("");
   }
 
   function cancelPrescriptionEditing() {
@@ -988,18 +995,24 @@ function App() {
                 required
               />
             </label>
+            {selectedDemoProfile && (
+              <p className="demo-credential-hint">
+                Perfil selecionado: <strong>{selectedDemoProfile.label}</strong>. Digite a senha de teste{" "}
+                <strong>{selectedDemoProfile.senha}</strong> e clique em Entrar.
+              </p>
+            )}
             {error && <div className="alert error">{error}</div>}
             <button disabled={loading}>{loading ? "Entrando..." : "Entrar"}</button>
           </form>
           <div className="demo-login">
-            <span className="helper-text">Acessos rapidos para demonstracao</span>
+            <span className="helper-text">Perfis de demonstracao</span>
             <div className="demo-login-grid">
               {demoProfiles.map((profile) => (
                 <button
                   key={profile.email}
                   type="button"
                   className="demo-login-button"
-                  onClick={() => loginWith(profile.email, profile.senha)}
+                  onClick={() => selectDemoProfile(profile)}
                   disabled={loading}
                 >
                   <strong>{profile.label}</strong>

@@ -225,6 +225,32 @@ class ApiContractTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_demo_reset_requires_admin_profile(self):
+        os.environ["SECRET_KEY"] = "dev-secret-dev-secret-dev-secret-1234"
+        get_settings.cache_clear()
+        token = create_test_token(role="medico")
+
+        response = self.client.post(
+            "/demo/reset",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_demo_reset_restores_local_json_data(self):
+        os.environ["SECRET_KEY"] = "dev-secret-dev-secret-dev-secret-1234"
+        os.environ["DATA_BACKEND"] = "json"
+        get_settings.cache_clear()
+        token = create_test_token(role="admin")
+
+        response = self.client.post(
+            "/demo/reset",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["message"], "Base de demonstracao restaurada.")
+
     def test_reports_export_requires_admin_profile(self):
         os.environ["SECRET_KEY"] = "dev-secret-dev-secret-dev-secret-1234"
         get_settings.cache_clear()

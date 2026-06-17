@@ -9,6 +9,7 @@ from backend.routes import (
     attachments,
     audit,
     auth,
+    demo,
     health,
     medications,
     patients,
@@ -48,6 +49,7 @@ def create_app() -> FastAPI:
     app.include_router(users.router, tags=["users"])
     app.include_router(reports.router, tags=["reports"])
     app.include_router(audit.router, tags=["audit"])
+    app.include_router(demo.router, tags=["demo"])
 
     if settings.data_backend == "json":
         settings.local_storage_dir.mkdir(parents=True, exist_ok=True)

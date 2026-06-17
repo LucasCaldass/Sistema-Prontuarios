@@ -9,6 +9,7 @@ import {
   Paperclip,
   Pencil,
   Pill,
+  RotateCcw,
   Search,
   ShieldCheck,
   Stethoscope,
@@ -208,6 +209,33 @@ const auditResources = [
   "user",
 ];
 
+const demoProfiles = [
+  {
+    label: "Admin",
+    description: "Usuarios, relatorios e auditoria",
+    email: "admin@hospital.com",
+    senha: "Admin@123",
+  },
+  {
+    label: "Medico",
+    description: "Prontuarios e prescricoes",
+    email: "medico@hospital.com",
+    senha: "Medico@123",
+  },
+  {
+    label: "Recepcao",
+    description: "Pacientes e agenda",
+    email: "recepcao@hospital.com",
+    senha: "Recepcao@123",
+  },
+  {
+    label: "Farmacia",
+    description: "Estoque e dispensacao",
+    email: "farmacia@hospital.com",
+    senha: "Farmacia@123",
+  },
+];
+
 function App() {
   const [token, setToken] = useState(() => localStorage.getItem("access_token") ?? "");
   const [email, setEmail] = useState("");
@@ -398,11 +426,15 @@ function App() {
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    await loginWith(email, senha);
+  }
+
+  async function loginWith(loginEmail: string, loginSenha: string) {
     setLoading(true);
     setError("");
     const form = new FormData();
-    form.set("email", email);
-    form.set("senha", senha);
+    form.set("email", loginEmail);
+    form.set("senha", loginSenha);
     try {
       const data = await apiRequest<{ access_token: string }>("/login", {
         method: "POST",
@@ -410,6 +442,8 @@ function App() {
       });
       localStorage.setItem("access_token", data.access_token);
       setToken(data.access_token);
+      setEmail(loginEmail);
+      setSenha(loginSenha);
       setMessage("Login realizado com sucesso.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nao foi possivel entrar.");
@@ -592,6 +626,27 @@ function App() {
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nao foi possivel dispensar.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resetDemoData() {
+    if (!window.confirm("Restaurar a base de demonstracao? Os cadastros feitos nos testes serao apagados.")) {
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      await apiRequest("/demo/reset", {
+        method: "POST",
+        token,
+      });
+      setMessage("Base de demonstracao restaurada.");
+      setView("dashboard");
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nao foi possivel resetar a demonstracao.");
     } finally {
       setLoading(false);
     }
@@ -936,6 +991,23 @@ function App() {
             {error && <div className="alert error">{error}</div>}
             <button disabled={loading}>{loading ? "Entrando..." : "Entrar"}</button>
           </form>
+          <div className="demo-login">
+            <span className="helper-text">Acessos rapidos para demonstracao</span>
+            <div className="demo-login-grid">
+              {demoProfiles.map((profile) => (
+                <button
+                  key={profile.email}
+                  type="button"
+                  className="demo-login-button"
+                  onClick={() => loginWith(profile.email, profile.senha)}
+                  disabled={loading}
+                >
+                  <strong>{profile.label}</strong>
+                  <small>{profile.description}</small>
+                </button>
+              ))}
+            </div>
+          </div>
           <p className="api-note">API: {getApiUrl()}</p>
         </section>
       </main>
@@ -1013,6 +1085,9 @@ function App() {
             pendingPrescriptions={pendingPrescriptions}
             scheduledAppointments={scheduledAppointments}
             users={users.length}
+            canResetDemo={currentUser?.role === "admin"}
+            onResetDemo={resetDemoData}
+            loading={loading}
           />
         )}
 
@@ -1212,6 +1287,9 @@ function Dashboard({
   pendingPrescriptions,
   scheduledAppointments,
   users,
+  canResetDemo,
+  onResetDemo,
+  loading,
 }: {
   patients: number;
   records: number;
@@ -1219,15 +1297,35 @@ function Dashboard({
   pendingPrescriptions: number;
   scheduledAppointments: number;
   users: number;
+  canResetDemo: boolean;
+  onResetDemo: () => void;
+  loading: boolean;
 }) {
   return (
-    <div className="dashboard-grid">
-      <Metric label="Pacientes" value={patients} icon={<Users size={22} />} />
-      <Metric label="Prontuarios" value={records} icon={<ClipboardList size={22} />} />
-      <Metric label="Prescricoes" value={prescriptions} icon={<Pill size={22} />} />
-      <Metric label="Pendentes" value={pendingPrescriptions} icon={<Activity size={22} />} />
-      <Metric label="Consultas agendadas" value={scheduledAppointments} icon={<CalendarDays size={22} />} />
-      <Metric label="Usuarios" value={users} icon={<UserCog size={22} />} />
+    <div className="stacked-workspace">
+      <div className="dashboard-grid">
+        <Metric label="Pacientes" value={patients} icon={<Users size={22} />} />
+        <Metric label="Prontuarios" value={records} icon={<ClipboardList size={22} />} />
+        <Metric label="Prescricoes" value={prescriptions} icon={<Pill size={22} />} />
+        <Metric label="Pendentes" value={pendingPrescriptions} icon={<Activity size={22} />} />
+        <Metric label="Consultas agendadas" value={scheduledAppointments} icon={<CalendarDays size={22} />} />
+        <Metric label="Usuarios" value={users} icon={<UserCog size={22} />} />
+      </div>
+      {canResetDemo && (
+        <section className="panel demo-admin-panel">
+          <div>
+            <span className="eyebrow">Ambiente de demonstracao</span>
+            <h2>Restaurar dados iniciais</h2>
+            <p className="helper-text">
+              Recria pacientes, agenda, prontuario, prescricao, estoque e acessos de exemplo.
+            </p>
+          </div>
+          <button type="button" className="secondary-button" onClick={onResetDemo} disabled={loading}>
+            <RotateCcw size={18} />
+            Resetar demonstracao
+          </button>
+        </section>
+      )}
     </div>
   );
 }
